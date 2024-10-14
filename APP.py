@@ -16,11 +16,11 @@ class AttentionLayer(tf.keras.layers.Layer):
         score = self.dense(inputs)
         attention_weights = tf.keras.layers.Softmax(axis=1)(score)
         context_vector = inputs * attention_weights
-        context_vector = tf.keras.layers.Lambda(lambda x: tf.reduce_sum(x, axis=1), output_shape=(inputs.shape[-1],))(context_vector)
+        context_vector = tf.keras.layers.Lambda(lambda x: tf.reduce_sum(x, axis=1))(context_vector)
         return context_vector
 
-# Load the trained model
-model_path = 'clothing_model.h5'  # Update the path if necessary
+# Load the trained model (ensure paths are correct)
+model_path = 'clothing_model.h5'  # Your saved model path
 loaded_model = tf.keras.models.load_model(model_path, custom_objects={'AttentionLayer': AttentionLayer})
 
 # Load the tokenizer
@@ -28,7 +28,7 @@ with open('tokenizer.pkl', 'rb') as handle:
     tokenizer = pickle.load(handle)
 
 # Define maximum sequence length (use the value used during training)
-max_seq_length = 62  # Update this value if it is different in your training code
+max_seq_length = 62  # Ensure this matches the value used in training
 
 # Preprocessing function for user input
 def preprocess_review(review_text, tokenizer, max_seq_length):
@@ -46,43 +46,18 @@ def preprocess_review(review_text, tokenizer, max_seq_length):
 
 # Streamlit app layout with styling
 st.set_page_config(page_title="Clothing Review Sentiment Analysis", layout="wide")
-st.title("🧥 Clothing Review Sentiment Analysis")
-st.markdown(
-    """
-    <style>
-        .title {
-            text-align: center;
-            font-size: 2.5em;
-            color: #4B0082;
-            margin-bottom: 20px;
-        }
-        .intro {
-            text-align: center;
-            font-size: 1.2em;
-            color: #555555;
-            margin-bottom: 30px;
-        }
-        .review-text {
-            border-radius: 10px;
-            padding: 10px;
-            background-color: #f0f8ff;
-        }
-        .prediction {
-            font-size: 1.5em;
-            margin-top: 20px;
-        }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+st.markdown("<h1 style='text-align: center; color: #FF6347;'>Clothing Review Sentiment Analysis</h1>", unsafe_allow_html=True)
+st.markdown("<h3 style='text-align: center; color: #4B0082;'>Created by: Sawaira Waheed</h3>", unsafe_allow_html=True)
+st.markdown("<h2 style='text-align: center; color: #FFD700;'>⭐⭐⭐⭐⭐</h2>", unsafe_allow_html=True)
 
-st.markdown('<div class="intro">Enter a clothing review below to see if it is positive or negative.</div>', unsafe_allow_html=True)
+st.write("### Please enter your clothing review below:")
 
 # Input for the review
-review_text = st.text_area("Review Text", height=150, placeholder="Type your review here...", key="review", label_visibility="collapsed")
+review_text = st.text_area("Review Text", height=150, placeholder="Type your review here...")
 
+# Button to predict sentiment
 if st.button("Predict"):
-    if review_text:
+    if review_text.strip():
         # Preprocess the input review
         padded_review = preprocess_review(review_text, tokenizer, max_seq_length)
         
@@ -92,10 +67,15 @@ if st.button("Predict"):
         # Convert prediction to binary output (0 or 1)
         predicted_label = (prediction[0][0] > 0.5).astype(int)
         
-        # Display the prediction
+        # Display the prediction result with stars
         if predicted_label == 1:
-            st.markdown('<div class="prediction" style="color: green;">✅ The review is positive!</div>', unsafe_allow_html=True)
+            st.markdown("<div style='text-align: center; color: green; font-size: 1.5em;'>✅ The review is positive!</div>", unsafe_allow_html=True)
+            st.markdown("<h2 style='text-align: center; color: #FFD700;'>⭐⭐⭐⭐⭐</h2>", unsafe_allow_html=True)
         else:
-            st.markdown('<div class="prediction" style="color: red;">❌ The review is negative.</div>', unsafe_allow_html=True)
+            st.markdown("<div style='text-align: center; color: red; font-size: 1.5em;'>❌ The review is negative.</div>", unsafe_allow_html=True)
+            st.markdown("<h2 style='text-align: center; color: #FFD700;'>⭐</h2>", unsafe_allow_html=True)
     else:
         st.warning("⚠️ Please enter a review text before predicting.")
+
+# Footer with additional info
+st.markdown("<h4 style='text-align: center; color: #808080;'>Model created using RNN with GRU and Attention Layer</h4>", unsafe_allow_html=True)
