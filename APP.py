@@ -19,16 +19,30 @@ class AttentionLayer(tf.keras.layers.Layer):
         context_vector = tf.keras.layers.Lambda(lambda x: tf.reduce_sum(x, axis=1))(context_vector)
         return context_vector
 
-# Load the trained model (ensure paths are correct)
-model_path = 'clothing_model.h5'  # Your saved model path
-loaded_model = tf.keras.models.load_model(model_path, custom_objects={'AttentionLayer': AttentionLayer})
+def load_model_and_tokenizer():
+    # Load the trained model
+    try:
+        model_path = 'clothing_model.h5'  # Update this path if necessary
+        loaded_model = tf.keras.models.load_model(model_path, custom_objects={'AttentionLayer': AttentionLayer})
+        
+        # Load the tokenizer
+        with open('tokenizer.pkl', 'rb') as handle:
+            tokenizer = pickle.load(handle)
+        
+        return loaded_model, tokenizer
+    except Exception as e:
+        st.error(f"Error loading model or tokenizer: {e}")
+        return None, None
 
-# Load the tokenizer
-with open('tokenizer.pkl', 'rb') as handle:
-    tokenizer = pickle.load(handle)
+# Load model and tokenizer
+loaded_model, tokenizer = load_model_and_tokenizer()
+
+# Ensure model and tokenizer are loaded successfully
+if loaded_model is None or tokenizer is None:
+    st.stop()
 
 # Define maximum sequence length (use the value used during training)
-max_seq_length = 62  # Ensure this matches the value used in training
+max_seq_length = 62  # Update this value if it is different in your training code
 
 # Preprocessing function for user input
 def preprocess_review(review_text, tokenizer, max_seq_length):
